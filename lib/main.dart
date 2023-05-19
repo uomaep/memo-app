@@ -1,17 +1,30 @@
+import 'package:app/pages/memo_list.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const App());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'uomaep - memo',
+      home: LoginPage(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   TextEditingController id_controller = TextEditingController();
   TextEditingController pw_controller = TextEditingController();
 
@@ -42,88 +55,88 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void loginHandler() {
+  void loginHandler(BuildContext context) {
     if (id_controller.text != "" && pw_controller.text != "") {
       print("id: ${id_controller.text}");
       print("pw: ${pw_controller.text}");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MemoList()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'uomaep - memo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "MEMO",
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontWeight: FontWeight.bold,
-                        ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Column(
+                  children: [
+                    const Text(
+                      "MEMO",
+                      style: TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 20),
-                      Image.asset("assets/images/main.png"),
+                    ),
+                    const SizedBox(height: 20),
+                    Image.asset("assets/images/main.png"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 100),
+              inputField(
+                labelText: "ID",
+                hintText: "아이디를 입력해주세요.",
+                contoller: id_controller,
+              ),
+              const SizedBox(height: 10),
+              inputField(
+                labelText: "Password",
+                hintText: "비밀번호를 입력해주세요.",
+                contoller: pw_controller,
+              ),
+              const SizedBox(height: 37),
+              GestureDetector(
+                onTap: () {
+                  loginHandler(context);
+                },
+                child: Container(
+                  height: 65,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6524FF),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6524FF).withOpacity(0.3),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset: const Offset(0, 3),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 100),
-                inputField(
-                  labelText: "ID",
-                  hintText: "아이디를 입력해주세요.",
-                  contoller: id_controller,
-                ),
-                const SizedBox(height: 10),
-                inputField(
-                  labelText: "Password",
-                  hintText: "비밀번호를 입력해주세요.",
-                  contoller: pw_controller,
-                ),
-                const SizedBox(height: 37),
-                GestureDetector(
-                  onTap: loginHandler,
-                  child: Container(
-                    height: 65,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6524FF),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6524FF).withOpacity(0.3),
-                          spreadRadius: 5,
-                          blurRadius: 7,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "로그인",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  child: const Center(
+                    child: Text(
+                      "로그인",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
