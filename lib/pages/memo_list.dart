@@ -1,35 +1,96 @@
+import 'dart:convert';
+
 import 'package:app/model/memo_model.dart';
 import 'package:app/pages/memo_write.dart';
 import 'package:app/widgets/memo_card.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class MemoList extends StatefulWidget {
   const MemoList({super.key});
-
   @override
   State<MemoList> createState() => _MemoListState();
 }
 
 class _MemoListState extends State<MemoList> {
-  late List<Memo> memos;
-
+  String url = "http://localhost:8080";
+  late Future<List<Memo>> memos;
+  late int memoCnt = 0;
   @override
   void initState() {
     super.initState();
-    memos = [
-      for (int i = 1; i < 5; i++) Memo(null, "title$i", "content$i"),
-    ];
+    setState(() {
+      memos = getMemos();
+    });
   }
 
-  void deleteMemo() {
-    setState(() {
-      memos = memos.where((e) => !e.checked).toList();
-    });
+  Future<List<Memo>> getMemos() async {
+    var res = await http.get(Uri.parse("$url/memo"));
+    if (res.statusCode == 200) {
+      List<dynamic> body = json.decode(utf8.decode(res.bodyBytes));
+      List<Memo> memos = body.map((e) => Memo.fromJson(e)).toList();
+      setState(() {
+        memoCnt = memos.length;
+      });
+      return memos;
+    } else {
+      throw Exception("불러오는데 실패했습니다!");
+    }
+  }
+
+  Future<void> deleteHandler() async {
+    var delList = [];
+    memos.then((value) {
+      for (var e in value) {
+        {
+          if (e.checked) delList.add(e.id);
+        }
+      }
+    }).then((_) => {
+          if (delList.isNotEmpty)
+            {
+              showDialog<void>(
+                //다이얼로그 위젯 소환
+                context: context,
+                barrierDismissible: false, // 다이얼로그 이외의 바탕 눌러도 안꺼지도록 설정
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('제목'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        //List Body를 기준으로 Text 설정
+                        children: const <Widget>[
+                          Text('정말 삭제하시겠습니까?'),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: const Text('확인'),
+                        onPressed: () {
+                          http.delete(Uri.parse("$url/memo"),
+                              headers: {'content-type': 'application/json'},
+                              body: jsonEncode(delList));
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      TextButton(
+                        child: const Text('취소'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              )
+            }
+        });
   }
 
   void writeMemo(BuildContext context) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => WritePage(memos)));
+        context, MaterialPageRoute(builder: (context) => WritePage()));
   }
 
   AppBar _appbar() {
@@ -57,11 +118,13 @@ class _MemoListState extends State<MemoList> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: deleteMemo,
+              onTap: () {
+                deleteHandler();
+              },
               child: Image.asset("assets/icons/trash.png"),
             ),
             Text(
-              "${memos.length}개의 메모",
+              "$memoCnt개의 메모",
               style: const TextStyle(
                 fontSize: 16,
                 color: Color(0xFF6524FF),
@@ -87,10 +150,23 @@ class _MemoListState extends State<MemoList> {
         bottomNavigationBar: _bottomAppBar(context),
         body: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: ListView.separated(
-              itemBuilder: (context, index) => MemoCard(memos[index]),
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemCount: memos.length),
+          child: FutureBuilder(
+            future: memos,
+            builder: (context, snapshot) {
+              if (snapshot.hasData == false) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                throw Exception("불러오지 못했습니다.");
+              } else {
+                var list = snapshot.data;
+                return ListView.separated(
+                    itemBuilder: (context, index) => MemoCard(list![index]),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
+                    itemCount: list?.length ?? 0);
+              }
+            },
+          ),
         ),
       ),
     );

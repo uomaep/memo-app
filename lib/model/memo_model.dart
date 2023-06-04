@@ -1,19 +1,18 @@
 class Memo {
-  String? memoId;
-  String memoTitle;
-  String memoText;
+  int? id;
+  late String content;
+  late String title = "";
+  late String subTitle = "";
   bool checked = false;
 
-  Memo(this.memoId, this.memoTitle, this.memoText);
+  Memo(this.id, this.content);
 
-  Memo.fromJson(Map<String, dynamic> json)
-      : memoId = json['memo_id'],
-        memoTitle = json['memo_title'],
-        memoText = json['memo_text'];
-
-  Map<String, dynamic> toJson() => {
-        'memo_id': memoId,
-        'memo_title': memoTitle,
-        'memo_text': memoText,
-      };
+  Memo.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    content = json['content'];
+    title = content.split("\n")[0];
+    if (content.split("\n").length > 1) {
+      subTitle = content.split("\n")[1];
+    }
+  }
 }
