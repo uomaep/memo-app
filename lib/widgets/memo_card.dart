@@ -6,7 +6,13 @@ import '../model/memo_model.dart';
 class MemoCard extends StatefulWidget {
   late Memo memo;
 
-  MemoCard(this.memo, {super.key});
+  MemoCard(
+    this.memo, {
+    super.key,
+    required this.notifyParent,
+  });
+
+  final Function notifyParent;
 
   @override
   State<MemoCard> createState() => _MemoCardState();
@@ -51,9 +57,14 @@ class _MemoCardState extends State<MemoCard> {
           GestureDetector(
             onTap: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MemoPage(widget.memo)));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MemoPage(
+                    widget.memo,
+                    notifyParent: widget.notifyParent,
+                  ),
+                ),
+              );
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

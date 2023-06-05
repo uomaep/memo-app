@@ -3,22 +3,22 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class WritePage extends StatelessWidget {
+class WritePage extends StatefulWidget {
+  const WritePage({
+    super.key,
+    required this.notifyParent,
+  });
+
+  final Function notifyParent;
+
+  @override
+  State<WritePage> createState() => _WritePageState();
+}
+
+class _WritePageState extends State<WritePage> {
   String url = "http://localhost:8080";
-  WritePage({super.key});
 
   final TextEditingController _textEditingController = TextEditingController();
-
-  void writeHandler(BuildContext context) {
-    String content = _textEditingController.text;
-    http
-        .post(Uri.parse("$url/memo"),
-            headers: {'content-type': 'application/json'},
-            body: jsonEncode({
-              "content": content,
-            }))
-        .then((_) => {Navigator.pop(context)});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +38,17 @@ class WritePage extends StatelessWidget {
         ),
         actions: [
           GestureDetector(
-            onTap: () {
-              writeHandler(context);
+            onTap: () async {
+              String content = _textEditingController.text;
+              var resp = await http.post(
+                Uri.parse("$url/memo"),
+                headers: {'content-type': 'application/json'},
+                body: jsonEncode({
+                  'content': content,
+                }),
+              );
+              if (resp.statusCode == 200) widget.notifyParent();
+              Navigator.pop(context);
             },
             child: Image.asset("assets/icons/checked.png"),
           )

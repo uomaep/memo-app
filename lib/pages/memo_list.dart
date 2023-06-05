@@ -25,6 +25,7 @@ class _MemoListState extends State<MemoList> {
   }
 
   Future<List<Memo>> getMemos() async {
+    print("getMemos");
     var res = await http.get(Uri.parse("$url/memo"));
     if (res.statusCode == 200) {
       List<dynamic> body = json.decode(utf8.decode(res.bodyBytes));
@@ -38,7 +39,7 @@ class _MemoListState extends State<MemoList> {
     }
   }
 
-  Future<void> deleteHandler() async {
+  Future<void> deleteHandler(BuildContext context) async {
     var delList = [];
     memos.then((value) {
       for (var e in value) {
@@ -68,10 +69,17 @@ class _MemoListState extends State<MemoList> {
                       TextButton(
                         child: const Text('확인'),
                         onPressed: () {
-                          http.delete(Uri.parse("$url/memo"),
-                              headers: {'content-type': 'application/json'},
-                              body: jsonEncode(delList));
-                          Navigator.of(context).pop();
+                          http
+                              .delete(Uri.parse("$url/memo"),
+                                  headers: {'content-type': 'application/json'},
+                                  body: jsonEncode(delList))
+                              .then((resp) => {
+                                    if (resp.statusCode == 200)
+                                      setState(() {
+                                        memos = getMemos();
+                                      })
+                                  });
+                          Navigator.pop(context);
                         },
                       ),
                       TextButton(
@@ -90,7 +98,17 @@ class _MemoListState extends State<MemoList> {
 
   void writeMemo(BuildContext context) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => WritePage()));
+      context,
+      MaterialPageRoute(
+        builder: (context) => WritePage(
+          notifyParent: () {
+            setState(() {
+              memos = getMemos();
+            });
+          },
+        ),
+      ),
+    );
   }
 
   AppBar _appbar() {
@@ -119,7 +137,7 @@ class _MemoListState extends State<MemoList> {
           children: [
             GestureDetector(
               onTap: () {
-                deleteHandler();
+                deleteHandler(context);
               },
               child: Image.asset("assets/icons/trash.png"),
             ),
@@ -160,7 +178,14 @@ class _MemoListState extends State<MemoList> {
               } else {
                 var list = snapshot.data;
                 return ListView.separated(
-                    itemBuilder: (context, index) => MemoCard(list![index]),
+                    itemBuilder: (context, index) => MemoCard(
+                          list![index],
+                          notifyParent: () {
+                            setState(() {
+                              memos = getMemos();
+                            });
+                          },
+                        ),
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 10),
                     itemCount: list?.length ?? 0);
