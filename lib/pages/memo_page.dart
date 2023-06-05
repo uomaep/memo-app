@@ -1,10 +1,18 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../model/memo_model.dart';
 
 class MemoPage extends StatefulWidget {
   Memo memo;
-  MemoPage(this.memo, {super.key});
+  MemoPage(
+    this.memo, {
+    super.key,
+    required this.notifyParent,
+  });
+
+  final Function notifyParent;
 
   @override
   State<MemoPage> createState() => _MemoPageState();
@@ -12,18 +20,26 @@ class MemoPage extends StatefulWidget {
 
 class _MemoPageState extends State<MemoPage> {
   final TextEditingController _textEditingController = TextEditingController();
+  String url = "http://localhost:8080";
 
   @override
   void initState() {
     super.initState();
-    _textEditingController.text =
-        "${widget.memo.memoTitle}\n${widget.memo.memoText}";
+    _textEditingController.text = widget.memo.content;
   }
 
-  void writeHandler() {
-    String text = _textEditingController.text;
-    print("title: ${text.split('\n')[0]}");
-    print(text);
+  void writeHandler(BuildContext context) {
+    String content = _textEditingController.text;
+    http
+        .put(
+          Uri.parse("$url/memo"),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'id': widget.memo.id, 'content': content}),
+        )
+        .then((resp) => {
+              if (resp.statusCode == 200)
+                {widget.notifyParent(), Navigator.pop(context)}
+            });
   }
 
   @override
@@ -45,7 +61,7 @@ class _MemoPageState extends State<MemoPage> {
         actions: [
           GestureDetector(
             onTap: () {
-              writeHandler();
+              writeHandler(context);
             },
             child: Image.asset("assets/icons/checked.png"),
           )

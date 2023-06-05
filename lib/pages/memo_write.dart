@@ -1,19 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-import '../model/memo_model.dart';
+class WritePage extends StatefulWidget {
+  const WritePage({
+    super.key,
+    required this.notifyParent,
+  });
 
-class WritePage extends StatelessWidget {
-  List<Memo> memos;
+  final Function notifyParent;
 
-  WritePage(this.memos, {super.key});
+  @override
+  State<WritePage> createState() => _WritePageState();
+}
+
+class _WritePageState extends State<WritePage> {
+  String url = "http://localhost:8080";
 
   final TextEditingController _textEditingController = TextEditingController();
-
-  void writeHandler() {
-    String text = _textEditingController.text;
-    print("title: ${text.split('\n')[0]}");
-    print(text);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +38,17 @@ class WritePage extends StatelessWidget {
         ),
         actions: [
           GestureDetector(
-            onTap: () {
-              writeHandler();
+            onTap: () async {
+              String content = _textEditingController.text;
+              var resp = await http.post(
+                Uri.parse("$url/memo"),
+                headers: {'content-type': 'application/json'},
+                body: jsonEncode({
+                  'content': content,
+                }),
+              );
+              if (resp.statusCode == 200) widget.notifyParent();
+              Navigator.pop(context);
             },
             child: Image.asset("assets/icons/checked.png"),
           )
