@@ -11,7 +11,16 @@
 - cupertino_icons: 1.0.2 -> 더 다양한 아이콘
 
 ### 기능
+- 회원가입 및 로그인 기능 : 각 유저마다 개인 메모 저장 가능
 - 메모 읽기, 저장, 수정, 삭제를 편하게 할 수 있음.
+
+<img width="473" alt="스크린샷 2023-06-08 오후 8 31 24" src="https://github.com/uomaep/memo-app/assets/114221785/4649b04a-6a59-4d8b-8f0c-10d635a4d750">
+
+API : Kotlin Spring Boot (JPA)
+POST("/login") : 로그인 요청
+POST("/register") : 회원가입 요청
+
+<img width="673" alt="image" src="https://github.com/uomaep/JS_Array_Challenge/assets/114221785/c81809ac-33a8-4f3f-b018-bb3eb4ab12ba">
 
 ### API : Kotlin Spring Boot (JPA)
 - GET("/todo") : 데이터 베이스에 저장된 Todo List를 요청
