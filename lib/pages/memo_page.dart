@@ -6,10 +6,12 @@ import '../model/memo_model.dart';
 
 class MemoPage extends StatefulWidget {
   Memo memo;
+  int userNo;
   MemoPage(
     this.memo, {
     super.key,
     required this.notifyParent,
+    required this.userNo,
   });
 
   final Function notifyParent;
@@ -34,7 +36,11 @@ class _MemoPageState extends State<MemoPage> {
         .put(
           Uri.parse("$url/memo"),
           headers: {'content-type': 'application/json'},
-          body: jsonEncode({'id': widget.memo.id, 'content': content}),
+          body: jsonEncode({
+            'id': widget.memo.id,
+            'content': content,
+            'certno': widget.userNo,
+          }),
         )
         .then((resp) => {
               if (resp.statusCode == 200)
