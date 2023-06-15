@@ -5,11 +5,12 @@ import '../model/memo_model.dart';
 
 class MemoCard extends StatefulWidget {
   late Memo memo;
-
+  int userNo;
   MemoCard(
     this.memo, {
     super.key,
     required this.notifyParent,
+    required this.userNo,
   });
 
   final Function notifyParent;
@@ -62,6 +63,7 @@ class _MemoCardState extends State<MemoCard> {
                   builder: (context) => MemoPage(
                     widget.memo,
                     notifyParent: widget.notifyParent,
+                    userNo: widget.userNo,
                   ),
                 ),
               );

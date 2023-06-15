@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app/main.dart';
 import 'package:app/model/memo_model.dart';
 import 'package:app/pages/memo_write.dart';
 import 'package:app/widgets/memo_card.dart';
@@ -7,7 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class MemoList extends StatefulWidget {
-  const MemoList({super.key});
+  int userNo;
+  MemoList({
+    super.key,
+    required this.userNo,
+  });
   @override
   State<MemoList> createState() => _MemoListState();
 }
@@ -25,8 +30,7 @@ class _MemoListState extends State<MemoList> {
   }
 
   Future<List<Memo>> getMemos() async {
-    print("getMemos");
-    var res = await http.get(Uri.parse("$url/memo"));
+    var res = await http.get(Uri.parse("$url/memo/${widget.userNo}"));
     if (res.statusCode == 200) {
       List<dynamic> body = json.decode(utf8.decode(res.bodyBytes));
       List<Memo> memos = body.map((e) => Memo.fromJson(e)).toList();
@@ -101,6 +105,7 @@ class _MemoListState extends State<MemoList> {
       context,
       MaterialPageRoute(
         builder: (context) => WritePage(
+          userNo: widget.userNo,
           notifyParent: () {
             setState(() {
               memos = getMemos();
@@ -122,6 +127,16 @@ class _MemoListState extends State<MemoList> {
           fontSize: 24,
           fontWeight: FontWeight.w600,
         ),
+      ),
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back,
+          color: Color(0xFF6524FF),
+        ),
+        onPressed: () {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const LoginPage()));
+        },
       ),
     );
   }
@@ -185,6 +200,7 @@ class _MemoListState extends State<MemoList> {
                               memos = getMemos();
                             });
                           },
+                          userNo: widget.userNo,
                         ),
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 10),

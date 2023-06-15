@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class WritePage extends StatefulWidget {
-  const WritePage({
+  int userNo;
+  WritePage({
     super.key,
     required this.notifyParent,
+    required this.userNo,
   });
 
   final Function notifyParent;
@@ -44,6 +46,7 @@ class _WritePageState extends State<WritePage> {
                 Uri.parse("$url/memo"),
                 headers: {'content-type': 'application/json'},
                 body: jsonEncode({
+                  'certno': widget.userNo,
                   'content': content,
                 }),
               );

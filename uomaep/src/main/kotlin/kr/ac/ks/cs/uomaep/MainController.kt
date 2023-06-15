@@ -1,6 +1,7 @@
 package kr.ac.ks.cs.uomaep
 
 import com.fasterxml.jackson.core.JsonParser
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -11,10 +12,12 @@ import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseBody
+import java.util.Optional
 
 @Entity
 data class MemoEntity(
@@ -22,18 +25,23 @@ data class MemoEntity(
     val id: Long?,
 
     val content: String,
+
+    @Column(nullable = false)
+    val certno: Long,
 )
 
 @Repository
-interface MemoRepo: CrudRepository<MemoEntity, Long>{}
+interface MemoRepo: CrudRepository<MemoEntity, Long>{
+    fun findAllByCertno(certno: Long): Iterable<MemoEntity>
+}
 
 @Controller
 @ResponseBody
 class MainController(
     @Autowired val memoRepo: MemoRepo,
 ) {
-    @GetMapping("/memo")
-    fun index() = memoRepo.findAll().toList();
+    @GetMapping("/memo/{certno}")
+    fun index(@PathVariable certno: Long) = memoRepo.findAllByCertno(certno).toList();
 
     @DeleteMapping("/memo")
     fun deleteMemo(@RequestBody delList: List<Long>): Boolean {
@@ -45,14 +53,14 @@ class MainController(
     @PostMapping("/memo")
     fun addMemo(@RequestBody req: MemoDTO): Boolean {
         return Result.runCatching {
-            memoRepo.save(MemoEntity(null, req.content))
+            memoRepo.save(MemoEntity(null, req.content, req.certno))
         }.isSuccess
     }
 
     @PutMapping("/memo")
     fun updateMemo(@RequestBody req: MemoDTO): Boolean {
         return Result.runCatching {
-            memoRepo.save(MemoEntity(req.id, req.content))
+            memoRepo.save(MemoEntity(req.id, req.content, req.certno))
         }.isSuccess
     }
 }
@@ -60,4 +68,5 @@ class MainController(
 data class MemoDTO(
     val id: Long,
     val content: String,
+    val certno: Long,
 ){}

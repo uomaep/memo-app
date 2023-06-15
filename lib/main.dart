@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:app/pages/memo_list.dart';
+import 'package:app/pages/register_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const App());
@@ -25,16 +30,24 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String url = "http://localhost:8080";
   TextEditingController id_controller = TextEditingController();
   TextEditingController pw_controller = TextEditingController();
+  bool loginError = false;
+  bool loginError2 = false;
+  final _storage = const FlutterSecureStorage();
 
   Widget inputField({
     required String labelText,
     required String hintText,
     required TextEditingController contoller,
+    bool obscureText = false,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: contoller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -55,14 +68,41 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void loginHandler(BuildContext context) {
-    if (id_controller.text != "" && pw_controller.text != "") {
-      print("id: ${id_controller.text}");
-      print("pw: ${pw_controller.text}");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MemoList()),
+  void loginHandler(BuildContext context) async {
+    var id = id_controller.text;
+    var pw = pw_controller.text;
+    if (id != "" && pw != "") {
+      var res = await http.post(
+        Uri.parse("$url/login"),
+        headers: {'content-type': 'application/json'},
+        body: jsonEncode({"id": id, "password": pw}),
       );
+
+      if (res.statusCode == 200) {
+        var userNo = jsonDecode(res.body);
+
+        if (userNo == -1) {
+          setState(() {
+            loginError = true;
+            loginError2 = false;
+          });
+          return;
+        } else {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => MemoList(userNo: userNo)));
+          setState(() {
+            loginError = false;
+            loginError2 = false;
+          });
+        }
+      }
+    } else {
+      setState(() {
+        loginError = false;
+        loginError2 = true;
+      });
     }
   }
 
@@ -77,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Column(
@@ -105,7 +145,19 @@ class _LoginPageState extends State<LoginPage> {
                 labelText: "Password",
                 hintText: "비밀번호를 입력해주세요.",
                 contoller: pw_controller,
+                obscureText: true,
+                keyboardType: TextInputType.visiblePassword,
               ),
+              if (loginError)
+                const Text(
+                  "아이디와 비밀번호가 맞지 않습니다.",
+                  style: TextStyle(color: Colors.red),
+                ),
+              if (loginError2)
+                const Text(
+                  "아이디와 비밀번호를 입력해주세요",
+                  style: TextStyle(color: Colors.red),
+                ),
               const SizedBox(height: 37),
               GestureDetector(
                 onTap: () {
@@ -135,6 +187,34 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  const Text(
+                    "계정이 없으세요?",
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RegisterPage()));
+                    },
+                    child: const Text(
+                      "회원가입",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
