@@ -34,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController id_controller = TextEditingController();
   TextEditingController pw_controller = TextEditingController();
   bool loginError = false;
+  bool loginError2 = false;
   final _storage = const FlutterSecureStorage();
 
   Widget inputField({
@@ -83,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
         if (userNo == -1) {
           setState(() {
             loginError = true;
+            loginError2 = false;
           });
           return;
         } else {
@@ -92,9 +94,15 @@ class _LoginPageState extends State<LoginPage> {
                   builder: (context) => MemoList(userNo: userNo)));
           setState(() {
             loginError = false;
+            loginError2 = false;
           });
         }
       }
+    } else {
+      setState(() {
+        loginError = false;
+        loginError2 = true;
+      });
     }
   }
 
@@ -143,6 +151,11 @@ class _LoginPageState extends State<LoginPage> {
               if (loginError)
                 const Text(
                   "아이디와 비밀번호가 맞지 않습니다.",
+                  style: TextStyle(color: Colors.red),
+                ),
+              if (loginError2)
+                const Text(
+                  "아이디와 비밀번호를 입력해주세요",
                   style: TextStyle(color: Colors.red),
                 ),
               const SizedBox(height: 37),
